@@ -36,7 +36,7 @@ main = do
 
 
 myServer :: IO ()
-myServer = runTCPServer Nothing "12080" runHTTP2Server
+myServer = runTCPServer (Just serverName) "12080" runHTTP2Server
   where
     runHTTP2Server s = E.bracket (allocSimpleConfig s 4096)
                                  freeSimpleConfig
