@@ -27,9 +27,10 @@ import Control.Monad
 
 import System.Environment
 
+main :: IO ()
 main = do
     args <- getArgs
-    let requests = case args of { (x:_) -> read x; _ -> 4444 }
+    let requests = case args of { (x:_) -> read x; _ -> 544 }
     _ <- forkIO $ myServer
     runClient requests
 
@@ -62,13 +63,13 @@ runClient requests = runTCPClient serverName "12080" $ runHTTP2Client serverName
         let req0 = requestNoBody methodGet (C8.pack "/") []
             client0 = sendRequest req0 $ \rsp -> do
                 -- print rsp
-                !r <- getResponseBodyChunk rsp :: IO C8.ByteString
+                !_r <- getResponseBodyChunk rsp :: IO C8.ByteString
                 return ()
                 -- C8.putStrLn r
             req1 = requestNoBody methodGet (C8.pack "/foo") []
             client1 = sendRequest req1 $ \rsp -> do
                 -- print rsp
-                !r <- getResponseBodyChunk rsp
+                !_r <- getResponseBodyChunk rsp
                 return ()
         ex <- E.try $ concurrently_ client0 client1
         case ex of
