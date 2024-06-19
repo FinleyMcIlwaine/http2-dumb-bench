@@ -1,36 +1,30 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE OverloadedStrings #-}
-
+{-# LANGUAGE RankNTypes        #-}
 
 module Main where
 
-import qualified UnliftIO.Exception as E
-import Data.ByteString.Builder (byteString)
-import qualified Data.ByteString.Builder as BSB
-import Network.HTTP.Types (ok200)
-import Network.Run.TCP (runTCPServer) -- network-run
-
-import Network.HTTP2.Server as Server
-
-import qualified Data.ByteString.Char8 as C8
-import Network.HTTP.Types
-import Network.Run.TCP (runTCPClient) -- network-run
-import UnliftIO.Async -- unliftio
-import qualified UnliftIO.Exception as E -- unliftio
-import Data.ByteString as BS
-
-import Network.HTTP2.Client as Client
-import Data.String
 import Control.Concurrent
 import Control.Monad
-
+import qualified Data.ByteString.Builder as BSB
+import qualified Data.ByteString.Char8 as C8
+import Data.String
 import System.Environment
+import UnliftIO.Async -- unliftio
+import qualified UnliftIO.Exception as E
+
+
+-- network-run
+import Network.HTTP.Types -- network-run
+import Network.Run.TCP (runTCPServer, runTCPClient) -- network-run
+
+-- http2
+import Network.HTTP2.Client as Client
+import Network.HTTP2.Server as Server -- http2
+
 
 main :: IO ()
 main = do
-    args <- getArgs
-    _ <- forkIO $ myServer
+    _ <- forkIO myServer
     runClient 400
 
 
@@ -46,9 +40,8 @@ myServer = runTCPServer Nothing "12080" runHTTP2Server
         header = [(fromString "Content-Type", C8.pack "text/plain")] :: ResponseHeaders
         body = BSB.string8 "Hello, world!\n"
 
-
 serverName :: String
-serverName = "127.0.0.1"
+serverName = "localhost"
 
 runClient :: Int -> IO ()
 runClient requests = runTCPClient serverName "12080" $ runHTTP2Client serverName

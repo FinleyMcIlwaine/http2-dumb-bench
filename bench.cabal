@@ -1,5 +1,5 @@
 cabal-version:      3.0
-name:               http2-dumb-bench
+name:               bench
 version:            0.1.0.0
 -- synopsis:
 -- description:
@@ -18,8 +18,6 @@ common warnings
 executable http2-dumb-bench
     import:           warnings
     main-is:          Main.hs
-    -- other-modules:
-    -- other-extensions:
     build-depends:
         base,
         http2 >= 5.2.4,
@@ -28,5 +26,18 @@ executable http2-dumb-bench
         network-run >= 0.3.0,
         http-types >= 0.12.4
 
-    hs-source-dirs:   app
+    hs-source-dirs:   http2
+    default-language: GHC2021
+
+executable network-dumb-bench
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base,
+        http2 >= 5.2.4,
+        bytestring >= 0.12.1.0,
+        network >= 3.2.0.0,
+        network-run >= 0.3.0,
+
+    hs-source-dirs:   network
     default-language: GHC2021
