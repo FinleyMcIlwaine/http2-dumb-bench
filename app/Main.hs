@@ -30,9 +30,8 @@ import System.Environment
 main :: IO ()
 main = do
     args <- getArgs
-    let requests = case args of { (x:_) -> read x; _ -> 544 }
     _ <- forkIO $ myServer
-    runClient requests
+    runClient 400
 
 
 myServer :: IO ()
@@ -60,6 +59,7 @@ runClient requests = runTCPClient serverName "12080" $ runHTTP2Client serverName
                                       (\conf -> Client.run (cliconf host) conf client)
     client :: Client ()
     client sendRequest _aux = forM_ [0..requests :: Int] $ \i -> do
+        when (i `mod` 50 == 0) $ print i
         let req0 = requestNoBody methodGet (C8.pack "/") []
             client0 = sendRequest req0 $ \rsp -> do
                 -- print rsp
