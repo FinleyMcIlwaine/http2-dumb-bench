@@ -18,6 +18,7 @@ import Network.Run.TCP (runTCPServer, runTCPClient) -- network-run
 -- http2
 import Network.HTTP2.Client as Client
 import Network.HTTP2.Server as Server
+import UnliftIO (concurrently_)
 
 
 main :: IO ()
@@ -66,6 +67,14 @@ runClient requests =
           when (i `mod` 50 == 0) $ print i
           let
             req0 = requestNoBody methodGet (C8.pack "/") []
-          sendRequest req0 $ \rsp -> do
-            !_r <- getResponseBodyChunk rsp :: IO C8.ByteString
-            return ()
+            client0 = sendRequest req0 $ \rsp -> do
+                -- print rsp
+                !_r <- getResponseBodyChunk rsp :: IO C8.ByteString
+                return ()
+                -- C8.putStrLn r
+            req1 = requestNoBody methodGet (C8.pack "/foo") []
+            client1 = sendRequest req1 $ \rsp -> do
+                -- print rsp
+                !_r <- getResponseBodyChunk rsp
+                return ()
+          concurrently_ client0 client1
