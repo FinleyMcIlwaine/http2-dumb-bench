@@ -6,6 +6,7 @@ import Control.Concurrent
 import Control.Monad
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as C
+import UnliftIO.Async
 
 -- network-run
 import Network.Run.TCP (runTCPServer, runTCPClient)
@@ -29,14 +30,17 @@ server = runTCPServer Nothing "3000" talk
           talk s
 
 client :: Int -> IO ()
-client = runTCPClient "localhost" "3000" . loop
+client n =
+    runTCPClient "localhost" "3000" $ \sock -> do
+      ((),()) <- concurrently (loop n sock) (loop (n * 2) sock)
+      sendAll sock ""
   where
-    loop 0 s = sendAll s "" >> putStrLn "done"
-    loop n s = do
-      let out = if n == 0 then "" else C.pack $ show n
+    loop 0 _ = putStrLn "done"
+    loop m s = do
+      let out = if m == 0 then "" else C.pack $ show m
       sendAll s out
       msg <- recv s 1024
-      when (n `mod` 1000 == 0) $ do
+      when (m `mod` 1000 == 0) $ do
         putStr "Received: "
         C.putStrLn msg
-      loop (n - 1) s
+      loop (m - 1) s

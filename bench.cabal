@@ -53,6 +53,7 @@ executable network-dumb-bench
         bytestring >= 0.12.1.0,
         network >= 3.2.0.0,
         network-run >= 0.3.0,
+        unliftio >= 0.2.25.0,
 
     hs-source-dirs:   network
     default-language: GHC2021
