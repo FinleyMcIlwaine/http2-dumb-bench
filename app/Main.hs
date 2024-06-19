@@ -1,9 +1,9 @@
-module Main where
-
-
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
+
+
+module Main where
 
 import qualified UnliftIO.Exception as E
 import Data.ByteString.Builder (byteString)
