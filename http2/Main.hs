@@ -8,8 +8,6 @@ import Control.Monad
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as C8
 import Data.String
-import System.Environment
-import UnliftIO.Async -- unliftio
 import qualified UnliftIO.Exception as E
 
 
@@ -19,21 +17,28 @@ import Network.Run.TCP (runTCPServer, runTCPClient) -- network-run
 
 -- http2
 import Network.HTTP2.Client as Client
-import Network.HTTP2.Server as Server -- http2
+import Network.HTTP2.Server as Server
 
 
 main :: IO ()
 main = do
     _ <- forkIO myServer
+    threadDelay 10_000
     runClient 400
 
 
 myServer :: IO ()
-myServer = runTCPServer Nothing "12080" runHTTP2Server
+myServer =
+    runTCPServer (Just serverName) "12080" runHTTP2Server
   where
-    runHTTP2Server s = E.bracket (allocSimpleConfig s 4096)
-                                 freeSimpleConfig
-                                 (\config -> Server.run defaultServerConfig config server)
+    runHTTP2Server s =
+        allocSimpleConfig s 4096 `E.bracket` freeSimpleConfig $
+          \conf ->
+            Server.run
+              defaultServerConfig
+              conf
+              server
+
     server _req _aux sendResponse = sendResponse response []
       where
         response = responseBuilder ok200 header body
@@ -44,28 +49,23 @@ serverName :: String
 serverName = "localhost"
 
 runClient :: Int -> IO ()
-runClient requests = runTCPClient serverName "12080" $ runHTTP2Client serverName
+runClient requests =
+    runTCPClient serverName "12080" runHTTP2Client
   where
-    cliconf host = defaultClientConfig { authority = host }
-    runHTTP2Client host s = E.bracket (allocSimpleConfig s 4096)
-                                      freeSimpleConfig
-                                      (\conf -> Client.run (cliconf host) conf client)
+    runHTTP2Client s =
+        allocSimpleConfig s 4096 `E.bracket` freeSimpleConfig $
+          \conf ->
+            Client.run
+              (defaultClientConfig { authority = serverName })
+              conf
+              client
+
     client :: Client ()
-    client sendRequest _aux = forM_ [0..requests :: Int] $ \i -> do
-        when (i `mod` 50 == 0) $ print i
-        let req0 = requestNoBody methodGet (C8.pack "/") []
-            client0 = sendRequest req0 $ \rsp -> do
-                -- print rsp
-                !_r <- getResponseBodyChunk rsp :: IO C8.ByteString
-                return ()
-                -- C8.putStrLn r
-            req1 = requestNoBody methodGet (C8.pack "/foo") []
-            client1 = sendRequest req1 $ \rsp -> do
-                -- print rsp
-                !_r <- getResponseBodyChunk rsp
-                return ()
-        ex <- E.try $ concurrently_ client0 client1
-        case ex of
-          Left  e  -> print (e :: HTTP2Error)
-          Right () -> return ()
-                      --putStrLn "OK"
+    client sendRequest _aux =
+        forM_ [0..requests :: Int] $ \i -> do
+          when (i `mod` 50 == 0) $ print i
+          let
+            req0 = requestNoBody methodGet (C8.pack "/") []
+          sendRequest req0 $ \rsp -> do
+            !_r <- getResponseBodyChunk rsp :: IO C8.ByteString
+            return ()
