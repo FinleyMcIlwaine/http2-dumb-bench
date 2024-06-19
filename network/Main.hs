@@ -17,7 +17,7 @@ main :: IO ()
 main = do
     _ <- forkIO server
     threadDelay 10_000
-    client 400
+    client 10000
 
 server :: IO ()
 server = runTCPServer Nothing "3000" talk
@@ -36,7 +36,7 @@ client = runTCPClient "localhost" "3000" . loop
       let out = if n == 0 then "" else C.pack $ show n
       sendAll s out
       msg <- recv s 1024
-      when (n `mod` 50 == 0) $ do
+      when (n `mod` 1000 == 0) $ do
         putStr "Received: "
         C.putStrLn msg
       loop (n - 1) s
