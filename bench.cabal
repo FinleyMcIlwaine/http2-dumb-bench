@@ -28,6 +28,21 @@ executable http2-dumb-bench
 
     hs-source-dirs:   http2
     default-language: GHC2021
+    ghc-options:
+        -threaded
+
+executable concurrently-dumb-bench
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base,
+        async > 2.1.1,
+        unliftio >= 0.2.25.0,
+
+    hs-source-dirs:   concurrently
+    default-language: GHC2021
+    ghc-options:
+        -threaded
 
 executable network-dumb-bench
     import:           warnings
@@ -41,3 +56,5 @@ executable network-dumb-bench
 
     hs-source-dirs:   network
     default-language: GHC2021
+    ghc-options:
+        -threaded
