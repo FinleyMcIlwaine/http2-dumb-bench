@@ -31,6 +31,7 @@ main :: IO ()
 main = do
     args <- getArgs
     _ <- forkIO $ myServer
+    threadDelay 1000000
     runClient 400
 
 
