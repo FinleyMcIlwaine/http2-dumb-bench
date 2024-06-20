@@ -44,7 +44,7 @@ myServer =
       where
         response = responseBuilder ok200 header body
         header = [(fromString "Content-Type", C8.pack "text/plain")] :: ResponseHeaders
-        body = BSB.string8 "Hello, world!\n"
+        body = BSB.string8 $ take 4000 $ cycle "Hello, world!\n"
 
 serverName :: String
 serverName = "localhost"
@@ -68,13 +68,11 @@ runClient requests =
           let
             req0 = requestNoBody methodGet (C8.pack "/") []
             client0 = sendRequest req0 $ \rsp -> do
-                -- print rsp
                 !_r <- getResponseBodyChunk rsp :: IO C8.ByteString
                 return ()
-                -- C8.putStrLn r
             req1 = requestNoBody methodGet (C8.pack "/foo") []
             client1 = sendRequest req1 $ \rsp -> do
-                -- print rsp
                 !_r <- getResponseBodyChunk rsp
                 return ()
-          concurrently_ client0 client1
+          client0
+          client1
