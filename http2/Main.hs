@@ -18,14 +18,12 @@ import Network.Run.TCP (runTCPServer, runTCPClient) -- network-run
 -- http2
 import Network.HTTP2.Client as Client
 import Network.HTTP2.Server as Server
-import UnliftIO (concurrently_)
-
 
 main :: IO ()
 main = do
     _ <- forkIO myServer
     threadDelay 10_000
-    runClient 400
+    runClient 1
 
 
 myServer :: IO ()
@@ -44,7 +42,7 @@ myServer =
       where
         response = responseBuilder ok200 header body
         header = [(fromString "Content-Type", C8.pack "text/plain")] :: ResponseHeaders
-        body = BSB.string8 $ take 4000 $ cycle "Hello, world!\n"
+        body = BSB.string8 $ take 4077 $ cycle "Hello, world!\n"
 
 serverName :: String
 serverName = "localhost"
@@ -70,9 +68,4 @@ runClient requests =
             client0 = sendRequest req0 $ \rsp -> do
                 !_r <- getResponseBodyChunk rsp :: IO C8.ByteString
                 return ()
-            req1 = requestNoBody methodGet (C8.pack "/foo") []
-            client1 = sendRequest req1 $ \rsp -> do
-                !_r <- getResponseBodyChunk rsp
-                return ()
           client0
-          client1
